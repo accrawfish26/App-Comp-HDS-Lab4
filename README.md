@@ -73,8 +73,8 @@ Differs why: There was no difference, as the output listed all 566 patient_id wi
 
 Query 2: patient per tissue source site per tumor stage. Count each patient once, and keep patients whose stage is missing (don't let them vanish from the result).
 
-```
-# table patients (stage, patient_id) & samples (tissue_source_site)
+```sql
+--- table patients (stage, patient_id) & samples (tissue_source_site)
 
 SELECT p.patient_id FROM patients p LEFT JOIN samples s ON s.patient_id = p.patient_id AND stage IN ('IV', 'IB', 'IIIA', 'IA', 'IIIB', 'IIB', 'IIA', ' ', 'II', 'I') GROUP BY p.patient_id;
 ```
@@ -110,6 +110,12 @@ Table should include the columns of sex, age at diagnosis, stage, tissue source 
 This was done through SQL style coding within a Python environment for pivoting purposes with the Pandas package. 
 
 The table needs to be saved as a TSV file that in the results
+
+```sql
+SELECT p.sex, p.age_at_diagnosis, p.stage, s.tissue_s
+ource_site, s.tmb_nonsynonymous FROM patients p LEFT JOIN samples s ON s.patient_id
+ = p.patient_id
+```
 
 ```
 # Command to rebuild the table from cohort.db from the READ.me file
