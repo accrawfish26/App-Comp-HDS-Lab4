@@ -1,123 +1,117 @@
 # Lab 4
+## What is the purpose?
+The repository uses a cohort dataset from the TCGA Lung Adenocarcinoma PanCancer Atlas study (566 patients) to ensure reproducibility of the feature table, along with additional SQL-based query scripts. 
 
-## Opening Database
+## Accessing the Database & Reproduce Features Table Script
+1. Cloning the repository
 
-### Clinical Database
+```
+git clone https://github.com/accrawfish26/App-Comp-HDS-Lab4.git
+```
+2. Set the working directory to the repository root
+3. Open Conda to open the `environment.yml` file
+4. The Scripts/feature_table.py should run with the expected packages 
+```shell
+#Presumes an available Python interpreter set on the computer for python3
 
-**1. Put your terminal directory to the data folder from the cloned repro**
+conda env create -f environment.yml
+conda activate Lab4
+python3 Scripts/feature_table.py
+```
+5. The feature table produced would be saved in `Results/feature_table.tsv`
 
-**2. Run SQL to open the `cohort.db`**
+## Running SQL Queries 
+**Note: Another place to view these information is `Scripts/query1.sql` & `Scripts/query2.sql` file.**
 
-	2a. `SQLite 3 cohort.db`
+**Set Up**
 
-**3. Test it worked by using `.tables` to view the expected headers of genes mutations patients samples.**
+1. Initial download of Pandas with SQLite3 was done in the data file of the repository (contains the `cohort.db`
+2. Call upon the `cohort.db` by using SQLITE3
+3. You should expect 4 tables when you run `.tables`: `genes`, `mutations`, `patients`, and `samples`.
+```shell
+#An indication sqlite3 loaded is if sqlite> appears at the start of the command line
+#An indicator sqlite 3 loaded in cohort.db is using .tables to see 4 tables
+.table
 
-## Schema Understanding (10)
+pip install pandas
+sqlite3 cohort.db
+```
+### Outcome from SQL Queries
 
-**1. Check what contents within the table with schema**
+**Schemas**
+To view contents within a table, use `.schema`
 
-1a. .schema patients, .schema samples, .schema mutations, .schema genes
-
-**2. Sum count of data entries of patients (all = 566 rows)**
-
-2a. SELECT COUNT(\*) FROM patients, SELECT COUNT(\*) FROM samples, SELECT COUNT(\*) mutations, SELECT COUNT(\*) FROM genes
-
-**3. List every table with its column, primary key and foreign keys**
-
-3a. Patients: patient\_id (text) primary Key! Sex (text), age\_at\_diagnosis (real), stage (text), vital\_status (text), followup\_months (real)
-
-3b. Samples: sample\_id (text) primary key! *patients(patient\_id)* (text), tissue\_source\_site (text), tmb\_nonsynonymous (real), aneuploidy\_score (reall), msi\_mantis\_score (real)
-
-3c. Mutations: mutation\_id (text) primary key! *samples(sample\_id)* (text), *genes(gene\_symbol)* (text), variant\_classification (text), variant\_type (text), protein\_change (text), chromosome (text), start\_pos (integer), end\_pos (integer), t\_ref\_count (integer), t\_alt\_count (integer)
-
-3d.Genes: gene\_symbol (text) primary key! entrez\_gene\_id (integer), chromosome (text),
-
-**4. State the grain of each table in one sentence**
-
-4a. Patients: one row as one patients.
-
-4b. Samples: one row is one tumor sample from one patient.
-
-4c. Mutations: one row is one mutation in one gene in one sample7d.
-
-4d. Genes: one row is one gene from sample
-
-**5. Describe how the tables relate in your own words, or with a simple diagram, based on what you checked in the database, not guessed from the column names.**
-
-5a. The primary key are often the `_id` from each respective table. For the muations table, they had one-to-many foreign keys where it used samples and genes table to produce the columns `sample_id` and `gene_symbol`. In a similar manner, the sample table had a one-to-one foreign keys that used the patients table to create its `pateint_id` column. These were the key table relations I noticed when cchecking the database with `.schema`.
-
-## SQL correctness (25)
-
-Query 1: per patient and per gene (TP53, KRAS, EGFR, STK11, KEAP1), the count of protein-altering mutations, with Silent excluded. Join through samples to reach patients.
-
-Note: Put filters on optional side of LEFT JOIN in ON (NOT WHERE)
-Note: Save the script as a `.sql` file or labeled in script
-
+1. Here is one example from patients: `.schema patients`
+2. Note: look for which column found in patients is the primary key
 ```sql
---- Table & columns: patient, sample & mutation tables (sample_id, gene_symbol, variant_classification)
---- Join through samples: LEFT JOIN in mutations ON samples
---- mutations = m, patient = p, samples = s, genes = g.
+-- output obtained:
+-- CREATE TABLE patients (patient_id TEXT PRIMARY KEY, sex TEXT, age_at_diagnosis REAL, stage TEXT, vital_status TEXT, followup_months REAL);
 
-SELECT p.patient_id, COUNT(m.protein_change) AS N_protein_chamge
-FROM patients p LEFT JOIN samples s ON s.patient_id = p.patient_id
-LEFT JOIN mutations m ON m.sample_id = s.sample_id
-AND m.gene_symbol IN ('TP53', 'KRAS','EGFR', 'STK11', 'KEAP1')
-AND m.variant_classification IS NOT 'Silent'
-GROUP BY p.patient_id;
+.schema patients
 ```
 
-Row count expected: 566
-Row count got:566
-
-Differs why: There was no difference, as the output listed all 566 patient_id with corresponding counts in protein changes. Double check needs to be done for all datapoints that resulted in 0 counts to ensure gaps are not influencing these outcomes.
-
-Query 2: patient per tissue source site per tumor stage. Count each patient once, and keep patients whose stage is missing (don't let them vanish from the result).
-
+**Row Sums**
+To sum the row count within a table, use `COUNT(*)`
+Here is one example to sum rows as patient count: 566 as output
 ```sql
---- table patients (stage, patient_id) & samples (tissue_source_site)
+-- output obtained: 566
 
-SELECT p.patient_id FROM patients p LEFT JOIN samples s ON s.patient_id = p.patient_id AND stage IN ('IV', 'IB', 'IIIA', 'IA', 'IIIB', 'IIB', 'IIA', ' ', 'II', 'I') GROUP BY p.patient_id;
+SELECT COUNT(*) FROM patients;
 ```
 
-Note: Put filters on optional side of LEFT JOIN in ON (NOT WHERE)
-Note: Save the script as a `.sql` file or labeled in script
+**Primary and Foreign Keys** 
+Part 1 on `.schema` can help find areas of joins between tables with the below summarized primary and foreign keys:
 
-Row count expected: Since the grain (or subject of rows) is primarily focus on tissue cource site per tour stage, I could expect at least 512 rows. This comes from 512 rows in column `stages`. This was seen from doing `SELECT COUNT(stage) FROM patients;`.
+|  Keys | Patinets | Samples | Mutations | Genes |
+|-------|---------|---------|-----------|-------|
+| Primary Key | patient_id | sample_id | mutation_id | gene_symbol |
+| Foreign Key | NA | patient_id | sample_id & gene_symbol | NA |
 
-Row count got: 142 as the total row count, with the sum of values stored as 566.
+> If you want to join from genes to patients table, one must use its foreign key to > create ties to their respective primary key:  
+> gene gene_symbol -> mutation gene_symbol, sample_id -> sample sample_id patient_id -> patients patient_id  
 
-```
-SELECT COUNT(*) FROM (SELECT s.tissue_source_site, p.stage, COUNT(DISTINCT
-p.patient_id) AS N_patients_sites FROM patients p LEFT JOIN samples s ON s.patient_
-id = p.patient_id GROUP BY s.tissue_source_site, p.stage);
-```
+**Grain of data**
+Grain is the topic of the rows within a table. For example:
+1. Table Patients: one row is one patient
+2. Table Samples: one row is one tumor sample from one patient
+3. Table Mutations: one row is one mutation in one gene in one sample
+4. Table Genes: one row is one gene from one sample
 
-Differs why: Each grain was a site containing how many patients had the tumor stage. The sum across all 142 rows was 566, meaning no patients were lost from the sql script. However, this does incorporate those 52 patients without stage data that was identified from row expected. These were stored as " " where I found them in the output as bellow:
+**Schemas, Keys, & Grains**
+
+The primary keys are often the `_id` fields in each table that define each row of data. This helps define the grain's topic for the row. For each additional detail held, foreign keys can help indicate that the gene is related to a sample belonging to a patient, for example. The idea of a one-to-many foreign key is that it allows mutations to connect both `gene_symbols` and `sample_id` to tie two separate tables. But for one-to-one, there is only one point of connection: the patients table with its `patient_id`, which can be referenced by the foreign key in the samples table. 
+
+### Query Questions
+View the `Scripts/` folder to see the query scripts that correspond to the tasks below that show how SQL can be utilized from previous concepts:
+
+**Query 1:** Per patient and per gene (TP53, KRAS, EGFR, STK11, KEAP1), the count of protein-altering mutations, with Silent excluded. Join through samples to reach patients.
+
+Findings showed that the row count was 566. After running the script, 566 patients were still included! The addition of silent excluded ensures that only protein-altering mutations are counted, as mutations that do not change the protein would otherwise be included.
+
+The before/after row output ended up listing all 566 patients with the `patient_id`. This was expected, as changes were made to the genes, not the patients, which were left alone as the grain for the table.
+
+**Query 2:** patient per tissue source site per tumor stage. Count each patient once, and keep patients whose stage is missing (don't let them vanish from the result).
+
+I ran a query to see how many data points were missing for the tumor stage and found that 54 were missing (512 total - 566 possible patients = 54 without tumor stage). I would expect the output from running query 2 to show either 512 or 566, depending on how it handles missing data (running `SELECT DISTINCT stage` acknowledges blanks as a data point).
+
+When I ran the query, I got 142 rows. This was concerning at first, until I realized that this represents 142 sites from which tumor tissue was sourced. Adding the values representing the number of patients yields a sum of 566, suggesting no patients were lost. As for where those 54 with no data went, it was found to be stored in the rows shown below:
 
 St Joseph's Medical Center (MD)| |1
 Washington University - Cleveland Clinic| |1
 Washington University| |52
 
-This would help show that no patient data was dropped, and did account for those with missing data at certain sites for stage of tissue progression.
+This would help confirm that no patient data was dropped when querying certain sites and stages of tissue progression.
 
-## Feature Table Construction (25)
+## Last Comments
 
-Create a table of 566 rows per patient and verify this count.
+### Feature Table (acknowledging missing data)
 
-Table should include the columns of sex, age at diagnosis, stage, tissue source site, tumor mutation burden, and one count column per gene.
+Notes about how gaps were handled in terms of sex, age at diagnosis, count for gene mutations, and stages of tumor tissue were listed in inline comments in the `/Scripts/feature_table.py`. But in brief, there were many gaps across all variables. But it was found that the Pandas package treats these as `NaN` floats, and after merging the patient and gene tables, we used `na_rep="NA"` to fill these missing values with NA. Additionally, the 0 found under each gene column indicates a count of 0 for that column, not missing data. 
 
+### git.ignore
 
-This was done through SQL style coding within a Python environment for pivoting purposes with the Pandas package. 
+The file was set as the default for Python, but was changed to allow for `.tsv` files for the `feature_table.tsv` and prevent the commit of the `cohort.db` file.
 
-The table needs to be saved as a TSV file that in the results
+### AI_Usage
 
-```sql
-SELECT p.sex, p.age_at_diagnosis, p.stage, s.tissue_s
-ource_site, s.tmb_nonsynonymous FROM patients p LEFT JOIN samples s ON s.patient_id
- = p.patient_id
-```
-
-```
-# Command to rebuild the table from cohort.db from the READ.me file
-
-```
+Honest usage of AI and related interactions were documented here. The assistant helped me find new SQL commands to complete the task I desired (CROSS JOIN & UNION ALL) and helped me discover that I can use `na_rep="NA". There was no AI use when it came to writing my own interpretations and in-program comments left in scripts, outside of Grammarly, to support minor writing suggestions. 
