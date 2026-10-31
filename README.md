@@ -12,7 +12,7 @@ git clone https://github.com/accrawfish26/App-Comp-HDS-Lab4.git
 3. Open Conda to open the `environment.yml` file
 4. The Scripts/feature_table.py should run with the expected packages 
 ```shell
-#Presumes an available Python interpreter set on the computer for python3
+#Opens an available Python interpreter set on the computer
 
 conda env create -f environment.yml
 conda activate Lab4
