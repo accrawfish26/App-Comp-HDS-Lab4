@@ -108,6 +108,25 @@ This would help confirm that no patient data was dropped when querying certain s
 
 Notes about how gaps were handled in terms of sex, age at diagnosis, count for gene mutations, and stages of tumor tissue were listed in inline comments in the `/Scripts/feature_table.py`. But in brief, there were many gaps across all variables. But it was found that the Pandas package treats these as `NaN` floats, and after merging the patient and gene tables, we used `na_rep="NA"` to fill these missing values with NA. Additionally, the 0 found under each gene column indicates a count of 0 for that column, not missing data. 
 
+Clarification on metadata:
+
+| Table | Columns | Meaning | Unit if Apply |
+|-------|---------|---------|
+| patients | patient_id | patient "barcode" | |
+| patients | sex | Sex listed for patient | |
+| patients | age_at_diagnosis | patient age at tumor diagnosis | year |
+| patients | stage | Stage tumor | |
+| sources | tissue_source_site | Where tumor sample sourced from | |
+| sources | tumor_mutation_burden | mutations per megabase |
+| mutations | TP53 | Count of protein-altering mutations in TP53 | count |
+| mutations | KRAS | Count of protein-altering mutations in KRAS | count |
+| mutations | EGFR | Count of protein-altering mutations in EGFR | count |
+| mutations | STK11 | Count of protein-altering mutations in STK11 | count |
+| mutations | KEAP1 | Count of protein-altering mutations in KEAP1 | count |
+
+
+Columns: Patients (patient demographics & id) 
+
 ### git.ignore
 
 The file was set as the default for Python, but was changed to allow for `.tsv` files for the `feature_table.tsv` and prevent the commit of the `cohort.db` file.
