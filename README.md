@@ -128,13 +128,13 @@ Notes about how gaps were handled in terms of sex, age at diagnosis, count for g
 Clarification on metadata:
 
 | Table | Columns | Meaning | Unit if Apply |
-|-------|---------|---------|
+|-------|---------|---------|---------------|
 | patients | patient_id | patient "barcode" | |
 | patients | sex | Sex listed for patient | |
 | patients | age_at_diagnosis | patient age at tumor diagnosis | year |
 | patients | stage | Stage tumor | |
 | sources | tissue_source_site | Where tumor sample sourced from | |
-| sources | tumor_mutation_burden | mutations per megabase |
+| sources | tumor_mutation_burden | nonsynonymous TMB (protein-altering) | mutations per megabase |
 | mutations | TP53 | Count of protein-altering mutations in TP53 | count |
 | mutations | KRAS | Count of protein-altering mutations in KRAS | count |
 | mutations | EGFR | Count of protein-altering mutations in EGFR | count |
