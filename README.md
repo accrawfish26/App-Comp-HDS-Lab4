@@ -48,6 +48,23 @@ To view contents within a table, use `.schema`
 -- CREATE TABLE patients (patient_id TEXT PRIMARY KEY, sex TEXT, age_at_diagnosis REAL, stage TEXT, vital_status TEXT, followup_months REAL);
 
 .schema patients
+
+-- other outputs for all columns
+CREATE TABLE mutations (
+  mutation_id INTEGER PRIMARY KEY,
+  sample_id TEXT NOT NULL REFERENCES samples(sample_id),
+  gene_symbol TEXT NOT NULL REFERENCES genes(gene_symbol),
+  variant_classification TEXT, variant_type TEXT, protein_change TEXT,
+  chromosome TEXT, start_pos INTEGER, end_pos INTEGER,
+  t_ref_count INTEGER, t_alt_count INTEGER);
+CREATE TABLE patients (
+  patient_id TEXT PRIMARY KEY, sex TEXT, age_at_diagnosis REAL, stage TEXT,
+  vital_status TEXT, followup_months REAL);
+CREATE TABLE samples (
+  sample_id TEXT PRIMARY KEY,
+  patient_id TEXT NOT NULL REFERENCES patients(patient_id),
+  tissue_source_site TEXT, tmb_nonsynonymous REAL, aneuploidy_score REAL,
+  msi_mantis_score REAL);
 ```
 
 **Row Sums**
